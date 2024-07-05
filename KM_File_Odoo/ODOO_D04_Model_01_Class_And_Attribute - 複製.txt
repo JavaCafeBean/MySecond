@@ -1,0 +1,103 @@
+ODOO_Model_01_Class_And_Attribute
+
+ODOO Model 1 Class and Attribute
+
+ODOO Model 之 1 - Model的類別以及屬性
+
+
+來源:
+https://ithelp.ithome.com.tw/articles/10266563
+
+
+ODOO透過Model來定義資料表中的欄位與關聯。
+
+以創立一個Student模組為例
+
+在models/init.py import res.student
+如:
+    from . import res.student
+
+
+並在models下建立 res_student.py
+
+例: Start
+# -*- coding: utf-8 -*-
+
+from odoo import api, models, fields
+
+class ResStudent(models.Model):
+	_name = 'res.student'
+    _inherit = 'res.partner'
+    _description = 'Student'
+
+		nickname = fields.Char(string='綽號')
+		score = fields.Float(string='學期平均')
+		birthday = fields.Date(string='生日', required=True)
+		school = fields.Many2one('res.company', string='所屬學校')
+		gender = fields.Selection([("male", "Male"), ("female", "Female"), ("other", "Other")], string='性別')
+		is_leadership = fields.Boolean(default=False)
+例: End
+
+
+Model Class
+    以BaseModel為基礎分了三個類別的Model:
+
+    ．Model :最常用的型別，在安裝addon時會對應Model產生表和欄位，一般來說沒有特殊需求就會宣告成這個型別。
+
+		例: Start
+		class Model(AbstractModel):
+		""" Main super-class for regular database-persisted Odoo models.
+
+		Odoo models are created by inheriting from this class::
+
+			class user(Model):
+				...
+
+		The system will later instantiate the class once per database (on
+		which the class' module is installed).
+		"""
+		_auto = True                # automatically create database backend
+		_register = False           # not visible in ORM registry, meant to be python-inherited only
+		_abstract = False           # not abstract
+		_transient = False          # not transient
+		例: End
+	
+	
+    ．TransientModel: 產生的資料作為臨時資料使用，一段時間以後ODOO變會清除裡面的資料，一般用來建立wizard。
+
+		例: Start 
+		class TransientModel(Model):
+			""" Model super-class for transient records, meant to be temporarily
+			persistent, and regularly vacuum-cleaned.
+
+			A TransientModel has a simplified access rights management, all users can
+			create new records, and may only access the records they created. The
+			superuser has unrestricted access to all TransientModel records.
+			"""
+			_auto = True                # automatically create database backend
+			_register = False           # not visible in ORM registry, meant to be python-inherited only
+			_abstract = False           # not abstract
+			_transient = True           # transient
+		例: End 
+
+
+	．AbstractModel: 即是最原本的BaseModel，不會新增欄位及儲存資料，透過繼承其他model來新增功能。
+
+		例:
+		AbstractModel = BaseModel
+
+
+
+Model Attribute
+    列出幾項常見設定的Model屬性，在model內的_auto、_register、_abstract、_transient只要根據需要的model型別去繼承便不用另外設定。
+
+    _name: model名稱，也會依照此名稱建立資料表，要注意的是中間必須以. 分隔，如上述例子中的res.student，ODOO便會創立一個名為「res_student」的資料表，若name為空，則會在原本繼承的資料表中擴增欄位。
+    _inherit: 繼承model名稱，如範例繼承了res_partner model。
+    _inherits: 以特定欄位繼承原本的表，會透過id參考回去原本的表。
+    _description: model敘述。
+    _table: 此model產生資料表的名稱，通常不會額外設定，會由_name 自動產生對應的資料表。
+    _order: 填入fields name，再觀察資料表的時候就會以此排序，如填入birthday 在ODOO觀看時便會依照學生生日排序，預設是照id 排序。
+
+
+
+
